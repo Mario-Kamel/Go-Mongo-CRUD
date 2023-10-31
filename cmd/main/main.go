@@ -21,6 +21,8 @@ func main() {
 	uc := controllers.NewUserController(getClient())
 	r.HandleFunc("/user/{id}", uc.GetUser).Methods("GET")
 	r.HandleFunc("/user", uc.CreateUser).Methods("POST")
+	r.HandleFunc("/user/{id}", uc.UpdateUser).Methods("PUT")
+	r.HandleFunc("/user/{id}", uc.DeleteUser).Methods("DELETE")
 
 	server := http.Server{
 		ReadTimeout:  60 * time.Second,

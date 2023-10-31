@@ -56,3 +56,42 @@ func (uc UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(res)
 }
+
+func (uc UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	var u models.User
+
+	params := mux.Vars(r)
+	id := params["id"]
+	oid, err := primitive.ObjectIDFromHex(id)
+	u.Id = oid
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	json.NewDecoder(r.Body).Decode(&u)
+	_, err = uc.client.Database("mongo-golang").Collection("users").UpdateOne(context.Background(), bson.M{"_id": oid}, bson.M{"$set": u})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (uc UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	_, err = uc.client.Database("mongo-golang").Collection("users").DeleteOne(context.Background(), bson.M{"_id": oid})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
